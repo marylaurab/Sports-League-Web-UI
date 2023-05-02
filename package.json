@@ -5,7 +5,7 @@
   "devDependencies": {
     "@babel/core": "^7.17.8",
     "@babel/preset-env": "^7.16.11",
-    "babel-jest": "^27.5.1",
+    "babel-jest": "23.6.0",
     "jest": "^27.5.1",
     "jest-junit": "^13.1.0",
     "jest-fetch-mock": "^3.0.3"
