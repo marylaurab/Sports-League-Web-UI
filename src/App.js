@@ -4,8 +4,10 @@ import LeagueService from "./services/LeagueService"
 const comando = new LeagueService()
 function App() {
  async function test() {
-   const matches =  await comando.getMatches()
+   const matches =  await comando.getMatches();
+   const teamsArrived= await comando.getLeaderboard()
    console.log(matches)
+   console.log("ORDENAMIENTO:", teamsArrived)
    return matches
   }
 

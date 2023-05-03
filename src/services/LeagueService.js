@@ -65,44 +65,134 @@ class LeagueService {
    *
    * @returns {Array} List of teams representing the leaderboard.
    */
-  async getLeaderboard() {
-    let teams = [];
-    const matchesLoaded = await this.getMatches(); //luego verificar si cambiando de pestana/componente si se me borra
+  getLeaderboard() {
+    let sumByTeam = [];
+    let namesOfTeams = [];
+    // const matchesLoaded = await this.getMatches(); //luego verificar si cambiando de pestana/componente si se me borra
     //el array de la linea 10, o no, ya que dependiendo de eso voy a ejecutar esta linea o no.
 
-    matchesLoaded.forEach((match) => {
+    arrayMatches.forEach((match) => {
       if (match.matchPlayed) {
-        const indexHomeTeam = teams.indexOf((team) => team.teamName === match.homeTeam);
-        if (indexHomeTeam !== -1) {
-          teams[indexHomeTeam] = {
-            ...teams[indexHomeTeam],
-            matchesPlayed: teams[indexHomeTeam].matchesPlayed + 1,
-            goalsFor: teams[indexHomeTeam].goalsFor + match.homeTeamScore,
-            goalsAgainst: teams[indexHomeTeam].goalsAgainst + match.awayTeamScore,
+        if (!namesOfTeams.includes(match.homeTeam)) {
+          namesOfTeams.push(match.homeTeam);
+          sumByTeam.push({
+            teamName: match.homeTeam,
+            matchesPlayed: 1,
+            goalsFor: match.homeTeamScore,
+            goalsAgainst: match.awayTeamScore,
             points:
-              match.matchPlayed > match.awayTeamScore
-                ? teams[indexHomeTeam].points + 3
-                : match.matchPlayed < match.awayTeamScore
-                ? teams[indexHomeTeam].points + 0
-                : teams[indexHomeTeam].points + 1,
-          };
+              match.homeTeamScore > match.awayTeamScore
+                ? 3
+                : match.homeTeamScore < match.awayTeamScore
+                ? 0
+                : 1,
+          });
         } else {
-            teams[indexHomeTeam] = {
-                teamName: match.homeTeam,
-                matchesPlayed:1,
-                goalsFor: match.homeTeamScore,
-                goalsAgainst: match.awayTeamScore,
-                points:
-                  match.matchPlayed > match.awayTeamScore
-                    ? teams[indexHomeTeam].points + 3
-                    : match.matchPlayed < match.awayTeamScore
-                    ? teams[indexHomeTeam].points + 0
-                    : teams[indexHomeTeam].points + 1,
-              };
-
+          const indexHomeTeam = namesOfTeams.indexOf(match.homeTeam);
+          sumByTeam[indexHomeTeam] = {
+            ...sumByTeam[indexHomeTeam],
+            matchesPlayed: sumByTeam[indexHomeTeam].matchesPlayed + 1,
+            goalsFor: sumByTeam[indexHomeTeam].goalsFor + match.homeTeamScore,
+            goalsAgainst:
+              sumByTeam[indexHomeTeam].goalsAgainst + match.awayTeamScore,
+            points:
+              match.homeTeamScore > match.awayTeamScore
+                ? sumByTeam[indexHomeTeam].points + 3
+                : match.homeTeamScore < match.awayTeamScore
+                ? sumByTeam[indexHomeTeam].points + 0
+                : sumByTeam[indexHomeTeam].points + 1,
+          };
+        }
+        if (!namesOfTeams.includes(match.awayTeam)) {
+          namesOfTeams.push(match.awayTeam);
+          sumByTeam.push({
+            teamName: match.awayTeam,
+            matchesPlayed: 1,
+            goalsFor: match.awayTeamScore,
+            goalsAgainst: match.homeTeamScore,
+            points:
+              match.awayTeamScore > match.homeTeamScore
+                ? 3
+                : match.awayTeamScore < match.homeTeamScore
+                ? 0
+                : 1,
+          });
+        } else {
+          const indexAwayTeam = namesOfTeams.indexOf(match.awayTeam);
+          sumByTeam[indexAwayTeam] = {
+            ...sumByTeam[indexAwayTeam],
+            matchesPlayed: sumByTeam[indexAwayTeam].matchesPlayed + 1,
+            goalsFor: sumByTeam[indexAwayTeam].goalsFor + match.awayTeamScore,
+            goalsAgainst:
+              sumByTeam[indexAwayTeam].goalsAgainst + match.homeTeamScore,
+            points:
+              match.awayTeamScore > match.homeTeamScore
+                ? sumByTeam[indexAwayTeam].points + 3
+                : match.awayTeamScore < match.homeTeamScore
+                ? sumByTeam[indexAwayTeam].points + 0
+                : sumByTeam[indexAwayTeam].points + 1,
+          };
         }
       }
     });
+    let headToHead;
+
+    sumByTeam.sort((i, j) =>
+      i.points > j.points
+        ? 1
+        : i.points < j.points
+        ? -1
+        : (headToHead = arrayMatches.find(
+            (match) =>
+              match.homeTeam === i.teamName && match.awayTeam === j.teamName
+          )
+            ? headToHead.homeTeamScore > headToHead.awayTeamScore
+              ? 1
+              : headToHead.homeTeamScore < headToHead.awayTeamScore
+              ? -1
+              : sumByTeam[sumByTeam.indexOf(i)].goalsAgainst <
+                sumByTeam[sumByTeam.indexOf(j)].goalsAgainst
+              ? 1
+              : sumByTeam[sumByTeam.indexOf(i)].goalsAgainst <
+                sumByTeam[sumByTeam.indexOf(j)].goalsAgainst
+              ? -1
+              : sumByTeam[sumByTeam.indexOf(i)].goalsFor >
+                sumByTeam[sumByTeam.indexOf(j)].goalsFor
+              ? 1
+              : sumByTeam[sumByTeam.indexOf(i)].goalsFor >
+                sumByTeam[sumByTeam.indexOf(j)].goalsFor
+              ? -1
+              : sumByTeam[sumByTeam.indexOf(i)].teamName >
+                sumByTeam[sumByTeam.indexOf(j)].teamName
+              ? 1
+              : -1
+            : (headToHead = arrayMatches.find(
+                (match) =>
+                  match.awayTeam === i.teamName && match.homeTeam === j.teamName
+              ))
+            ? headToHead.awayTeamScore > headToHead.homeTeamScore
+              ? 1
+              : headToHead.awayTeamScore < headToHead.homeTeamScore
+              ? -1
+              : sumByTeam[sumByTeam.indexOf(i)].goalsAgainst <
+                sumByTeam[sumByTeam.indexOf(j)].goalsAgainst
+              ? 1
+              : sumByTeam[sumByTeam.indexOf(i)].goalsAgainst <
+                sumByTeam[sumByTeam.indexOf(j)].goalsAgainst
+              ? -1
+              : sumByTeam[sumByTeam.indexOf(i)].goalsFor >
+                sumByTeam[sumByTeam.indexOf(j)].goalsFor
+              ? 1
+              : sumByTeam[sumByTeam.indexOf(i)].goalsFor >
+                sumByTeam[sumByTeam.indexOf(j)].goalsFor
+              ? -1
+              : sumByTeam[sumByTeam.indexOf(i)].teamName >
+                sumByTeam[sumByTeam.indexOf(j)].teamName
+              ? 1
+              : -1
+            : null)
+    );
+    return sumByTeam;
   }
 
   /**
