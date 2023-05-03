@@ -7,7 +7,7 @@
  *
  */
 import axios from "axios";
-
+let arrayMatches = [];
 class LeagueService {
   /**
    * Sets the match schedule.
@@ -35,8 +35,9 @@ class LeagueService {
    *
    * @param {Array} matches List of matches.
    */
+
   setMatches(matches) {
-    
+    arrayMatches = matches;
   }
 
   /**
@@ -44,7 +45,10 @@ class LeagueService {
    *
    * @returns {Array} List of matches.
    */
-  getMatches() {}
+  async getMatches() {
+    await this.fetchData();
+    return arrayMatches;
+  }
 
   /**
    * Returns the leaderboard in a form of a list of JSON objecs.
@@ -61,7 +65,45 @@ class LeagueService {
    *
    * @returns {Array} List of teams representing the leaderboard.
    */
-  getLeaderboard() {}
+  async getLeaderboard() {
+    let teams = [];
+    const matchesLoaded = await this.getMatches(); //luego verificar si cambiando de pestana/componente si se me borra
+    //el array de la linea 10, o no, ya que dependiendo de eso voy a ejecutar esta linea o no.
+
+    matchesLoaded.forEach((match) => {
+      if (match.matchPlayed) {
+        const indexHomeTeam = teams.indexOf((team) => team.teamName === match.homeTeam);
+        if (indexHomeTeam !== -1) {
+          teams[indexHomeTeam] = {
+            ...teams[indexHomeTeam],
+            matchesPlayed: teams[indexHomeTeam].matchesPlayed + 1,
+            goalsFor: teams[indexHomeTeam].goalsFor + match.homeTeamScore,
+            goalsAgainst: teams[indexHomeTeam].goalsAgainst + match.awayTeamScore,
+            points:
+              match.matchPlayed > match.awayTeamScore
+                ? teams[indexHomeTeam].points + 3
+                : match.matchPlayed < match.awayTeamScore
+                ? teams[indexHomeTeam].points + 0
+                : teams[indexHomeTeam].points + 1,
+          };
+        } else {
+            teams[indexHomeTeam] = {
+                teamName: match.homeTeam,
+                matchesPlayed:1,
+                goalsFor: match.homeTeamScore,
+                goalsAgainst: match.awayTeamScore,
+                points:
+                  match.matchPlayed > match.awayTeamScore
+                    ? teams[indexHomeTeam].points + 3
+                    : match.matchPlayed < match.awayTeamScore
+                    ? teams[indexHomeTeam].points + 0
+                    : teams[indexHomeTeam].points + 1,
+              };
+
+        }
+      }
+    });
+  }
 
   /**
    * Asynchronic function to fetch the data from the server.
@@ -72,13 +114,13 @@ class LeagueService {
         Authorization: "Bearer YuHBdSlDXY000xa8IlCm7Qgq4_s",
       },
     };
-    const url = "http://localhost:3000/api/v1/getAllMatches";
+    const url = "http://localhost:3001/api/v1/getAllMatches";
     try {
       const apiResponse = await axios.get(url, config);
-      const matches = apiResponse.data;
-      setMatches(matches);
+      const matches = apiResponse.data.matches;
+      this.setMatches(matches);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
     }
   }
 }
